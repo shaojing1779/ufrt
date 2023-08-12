@@ -16,6 +16,6 @@
         read only = no
 
 # 重启samba
-    sudo service smbd restart
+    systeamctl restart smbd
 
     
