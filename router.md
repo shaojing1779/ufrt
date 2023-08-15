@@ -42,3 +42,24 @@ nmcli con add con-name enp7s0_static ifname enp7s0 type ethernet autoconnect yes
 nmcli con add con-name enp1s0_static ifname enp1s0 type ethernet autoconnect yes ipv4.method manual ipv4.addresses 192.168.31.1/24 ipv4.gateway 192.168.31.254 ipv4.dns 114.114.114.114
 ```
 
+### iptables设置
+
+```bash
+iptables -t nat -A POSTROUTING -o enp8s0 -j MASQUERADE
+```
+
+### dnsmasq
+
+```bash
+# /etc/dnsmasq.conf
+listen-address=10.43.0.254,127.0.0.1
+# listen-address=127.0.0.1
+
+dhcp-range=10.43.0.50,10.43.0.150,48h
+resolv-file=/etc/dnsmasq.d/resolv.dnsmasq.conf
+log-facility=/var/log/dnsmasq/dnsmasq.log
+log-async=100
+
+conf-dir=/etc/dnsmasq.d
+
+```
