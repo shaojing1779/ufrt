@@ -62,6 +62,19 @@ log-async=100
 
 conf-dir=/etc/dnsmasq.d
 
+# /etc/dnsmasq.d/resolv.dnsmasq.conf
+all-servers
+server=202.106.0.20
+server=192.168.31.254
+server=114.114.114.114
+server=8.8.8.8
+server=168.95.1.1
+
+address=/nas.coolbit.work/192.168.31.95
+address=/nas/192.168.31.95
+address=/nuc.coolbit.work/192.168.31.198
+address=/nuc/192.168.31.198
+
 ```
 
 ### 常用工具
