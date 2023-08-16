@@ -1,26 +1,37 @@
 #!/bin/bash
 
-# 网络设置
+# frpc to frps
+FRP_PORT_SSH=9701
+# deploy directory
+DEP_DIR=/opt/debrt
+
+# network setting
 nmcli con add con-name eth0_static ifname eth0 \
     type ethernet autoconnect yes ipv4.method manual \
-    ipv4.addresses 10.43.0.254/24 ipv4.dns 114.114.114.114
+    ipv4.addresses 10.21.0.254/24
 nmcli con add con-name eth1_static ifname eth1 \
     type ethernet autoconnect yes ipv4.method manual \
-    ipv4.addresses 192.168.31.1/24 ipv4.gateway 192.168.31.254 ipv4.dns 114.114.114.114
+    ipv4.addresses 192.168.31.1/24 ipv4.gateway 192.168.31.254 ipv4.dns 127.0.0.1
 
-# 网络工具
-apt install tcpdump bridge-utils iptraf tree dsnmasq vim-tiny wget curl network-manager nfs-common openssl iftop unzip
+# install packages
+apt install tcpdump bridge-utils iptraf iftop network-manager openssl
+apt unzip vim-tiny tree wget curl
+apt nfs-common samba dsnmasq
 
 # create work directory & soft
-mkdir /opt/debrt && cd /opt/debtr
-
+mkdir -p $DEP_DIR && cd /opt/debtr
+if [ $? != 0 ]
+then
+    echo "[mkdir $DEP_DIR] error!"
+    exit;
+fi
 # frp
 wget https://github.com/fatedier/frp/releases/download/v0.51.3/frp_0.51.3_linux_amd64.tar.gz
-tar zxvf frp_0.51.3_linux_amd64.tar.gz -C /opt/debrt/
+tar zxvf frp_0.51.3_linux_amd64.tar.gz -C $DEP_DIR
 
 ln -s frp_0.51.3_linux_amd64 frp
 
-echo '[common]
+echo "[common]
 server_addr = frps.coolbit.work
 server_port = 7112
 token = sam&frodo
@@ -29,7 +40,7 @@ token = sam&frodo
 type = tcp
 local_ip = 127.0.0.1
 local_port = 22
-remote_port = 64101' > /opt/debrt/frpc.ini
+remote_port = $FRP_PORT_SSH" > $DEP_DIR/frp/frpc.ini
 
 echo '[Unit]
 Description=Frp Client Service
@@ -39,14 +50,14 @@ After=network.target
 Type=simple
 Restart=always
 RestartSec=5
-ExecStart=/opt/debrt/frp/frpc -c /opt/debrt/frp/frpc.ini
+ExecStart=$DEP_DIR/frp/frpc -c $DEP_DIR/frp/frpc.ini
 
 [Install]
 WantedBy=multi-user.target' > /usr/lib/systemd/system/frpc.service
 
 # v2ray
 wget https://github.com/v2fly/v2ray-core/releases/download/v4.31.0/v2ray-linux-64.zip
-unzip v2ray-linux-64.zip -d /opt/debrt/v2ray
+unzip v2ray-linux-64.zip -d $DEP_DIR/v2ray
 
 echo '{
   "inbounds": [
@@ -115,7 +126,7 @@ echo '{
       }
     ]
   }
-}' > /opt/debrt/v2ray/config.json
+}' > $DEP_DIR/v2ray/config.json
 
 echo '[Unit]
 Description=V2Ray Service
@@ -127,7 +138,7 @@ User=nobody
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=/opt/debrt/v2ray/bin/v2ray -config /opt/debrt/v2ray/config.json
+ExecStart=$DEP_DIR/v2ray/bin/v2ray -config $DEP_DIR/v2ray/config.json
 Restart=on-failure
 RestartPreventExitStatus=23
 
