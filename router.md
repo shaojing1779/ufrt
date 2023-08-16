@@ -46,6 +46,8 @@ nmcli con add con-name enp1s0_static ifname enp1s0 type ethernet autoconnect yes
 
 ```bash
 iptables -t nat -A POSTROUTING -o enp8s0 -j MASQUERADE
+iptables -L -n -t nat
+iptables-save
 ```
 
 ### dnsmasq
