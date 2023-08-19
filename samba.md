@@ -17,5 +17,7 @@
 
 # 重启samba
     systeamctl restart smbd
+# 添加用户名/密码
+    smbpasswd -a usr1
 
-    
+## reference
