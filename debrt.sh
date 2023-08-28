@@ -42,7 +42,7 @@ local_ip = 127.0.0.1
 local_port = 22
 remote_port = $FRP_PORT_SSH" > $DEP_DIR/frp/frpc.ini
 
-echo '[Unit]
+echo "[Unit]
 Description=Frp Client Service
 After=network.target
 
@@ -53,7 +53,7 @@ RestartSec=5
 ExecStart=$DEP_DIR/frp/frpc -c $DEP_DIR/frp/frpc.ini
 
 [Install]
-WantedBy=multi-user.target' > /usr/lib/systemd/system/frpc.service
+WantedBy=multi-user.target" > /usr/lib/systemd/system/frpc.service
 
 # v2ray
 wget https://github.com/v2fly/v2ray-core/releases/download/v4.31.0/v2ray-linux-64.zip
@@ -138,7 +138,7 @@ User=nobody
 CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 AmbientCapabilities=CAP_NET_ADMIN CAP_NET_BIND_SERVICE
 NoNewPrivileges=true
-ExecStart=$DEP_DIR/v2ray/bin/v2ray -config $DEP_DIR/v2ray/config.json
+ExecStart=$DEP_DIR/v2ray/v2ray -config $DEP_DIR/v2ray/config.json
 Restart=on-failure
 RestartPreventExitStatus=23
 
