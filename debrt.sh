@@ -160,10 +160,10 @@ conf_iface() {
         fi
     done
 
-    printf "\n\n"
+    printf "\n"
     # Note that we're stepping through KEYS here, not values.
-    for key in ${!M_IFACE[@]}; do
-        printf '"%s: %s"\n' "$key" "${M_IFACE[$key]}"
+    for k in ${!M_IFACE[@]}; do
+        printf '"%s: %s"\n' "${k}" "${M_IFACE[${k}]}"
     done
 
 }
@@ -217,7 +217,6 @@ network_set() {
 				RUT_CFILE="${RUT_CFILE}\t# ip route add ${network}/24 via XXX.XXX.XXX.XXX\n\treturn\n"
 			fi
 		fi
-        # printf '"%s: %s"\n' "$key" "${M_IFACE[$key]}"
     done
 
 	echo -e "${WAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/static.iface
@@ -307,7 +306,7 @@ stop_systemd() {
     apt remove -y systemd-resolved
     mv /usr/lib/systemd/system/systemd-networkd.service /usr/lib/systemd/system/systemd-networkd.service.bak
     mv /usr/lib/systemd/system/systemd-networkd.socket /usr/lib/systemd/system/systemd-networkd.socket.bak
-    
+
     rm /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
     rm /etc/systemd/system/dbus-org.freedesktop.network1.service
     rm /etc/systemd/system/sockets.target.wants/systemd-networkd.socket
