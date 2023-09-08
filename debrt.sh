@@ -1,22 +1,22 @@
 #!/bin/bash
 
 # interface name
-IFACE_LAN=eno1
-IFACE_WAN=enp1s0
+IFACE_LAN=enp5s0
+IFACE_WAN=enp8s0
 
 # ip address
-ADDR_LAN=10.21.0.254
-ADDR_WAN=192.168.31.1
+ADDR_LAN=10.25.0.141
+ADDR_WAN=10.24.0.141
 
-DHCP_BEG=10.21.0.50
-DHCP_END=10.21.0.200
+DHCP_BEG=10.25.0.50
+DHCP_END=10.25.0.150
 
 # dns server
 DNS1=114.114.114.114
 DNS2=8.8.8.8
 
-# default gateway
-GATEWAY=192.168.31.254
+# default netx-hop gateway
+GATEWAY=10.24.0.1
 
 # create deploy directory
 DEP_DIR=/opt/debrt; mkdir -p $DEP_DIR
@@ -50,7 +50,7 @@ function network_set {
 	# add static route
 	echo "#!/bin/sh
 	if [ \"$IFACE\" = ${IFACE_LAN} ]; then
-		# ip route add 192.168.1.0/24 via 192.168.31.254
+		# ip route add XXX.XXX.XXX.0/24 via XXX.XXX.XXX.XXX
 	fi" > /etc/network/if-up.d/route
 }
 
@@ -86,8 +86,7 @@ function dnsmasq_set {
 	# dnsmasq resolv
 	echo "all-servers
 	server=/cn/114.114.114.114
-	server=192.168.31.254
-	server=223.5.5.5
+	server=${GATEWAY}
 	server=/google.com/8.8.8.8" > /etc/dnsmasq.d/resolv.dnsmasq.conf
 }
 
