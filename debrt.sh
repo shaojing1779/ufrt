@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
 DATE=`date "+%y%m%d%H%M%S"`
-ETC_DIR=$HOME/etc
+ETC_DIR=/etc
 
 # create deploy directory
 mk_work_dir() {
@@ -90,7 +90,7 @@ valid_cidr() {
 
 # show interface
 show_iface() {
-    ip -br l show 2>/dev/null | awk -F"[ ]" '$0 !~ "lo|vir|wl|vnet|veth"{print $0;getline}'
+    ip -br l show 2>/dev/null | awk '$0 !~ "lo|vir|wl|vnet|veth"{print $0}'
 }
 
 # declare map interfaces data
@@ -107,7 +107,7 @@ conf_iface() {
             read -p "Input LAN${LAN_FLAG} interface name or 'done': " iface
         fi
 
-        value=`ip -br l show ${iface} 2>/dev/null| awk -F"[ ]" '$0 !~ "lo|vir|wl|vnet|veth"{print $1;getline}'`
+        value=`ip -br l show ${iface} 2>/dev/null| awk '$0 !~ "lo|vir|wl|vnet|veth"{print $1}'`
         if [ "${value}" != "" ] && [ "${value}" == "${iface}" ]; then
 
             while true; do
@@ -305,13 +305,13 @@ stop_systemd() {
 
 main() {
 	echo "--------------start---------------"
-	# sys init
-	stop_systemd;
 	install_pkg;
 	# config interface
 	conf_iface;
 	# network setting
 	network_set;
+    # sys init
+	stop_systemd;
 	# iptables setting
 	iptables_set;
 	# dnsmasq setting
