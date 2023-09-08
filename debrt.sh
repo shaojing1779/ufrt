@@ -247,6 +247,7 @@ dnsmasq_set() {
 
 	# create dnsmasq directory
 	mkdir -p ${ETC_DIR}/dnsmasq.d/;
+    mkdir -p /var/log/dnsmasq/
 
 	# dnsmasq dhcp
 	DHCP_RANGE="listen-address=0.0.0.0,127.0.0.1
@@ -300,7 +301,8 @@ stop_systemd() {
 	# dnsmasq resolv
 	echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
 	systemctl disable --now systemd-resolved.service
-	systemctl disable --now systemd-networkd
+	systemctl disable --now systemd-networkd.service
+    systemctl disable --now systemd-networkd.socket
 }
 
 main() {
