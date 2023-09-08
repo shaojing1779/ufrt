@@ -45,12 +45,17 @@ function cdr2mask {
 get_network_no() {
 
     IFS=. read -r i1 i2 i3 i4 <<< ${1}
-
     mask=`cdr2mask ${2}`;
-
     IFS=. read -r m1 m2 m3 m4 <<< ${mask}
     printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))"
+    return 0;
+}
 
+get_network_broadcast() {
+    IFS=. read -r i1 i2 i3 i4 <<< ${1}
+    mask=`cdr2mask ${2}`;
+    IFS=. read -r m1 m2 m3 m4 <<< ${mask}
+    printf "%d.%d.%d.%d\n" "$((i1 | (0xFF^m1)))" "$((i2 | (0xFF^m2)))" "$((i3 | (0xFF^m3)))" "$((i4 | (0xFF^m4)))"
     return 0;
 }
 
@@ -64,22 +69,22 @@ valid_cidr() {
     fi
     check_fmt_cidr
     # Parse "a.b.c.d/n" into five separate variables
-    IFS="./" read -r ip1 ip2 ip3 ip4 N <<< "${CIDR}"
+    IFS="./" read -r ip1 ip2 ip3 ip4 mask_num <<< "${CIDR}"
 
     # Convert IP address from quad notation to integer
     ip=$(($ip1 * 256 ** 3 + $ip2 * 256 ** 2 + $ip3 * 256 + $ip4))
 
-    # Remove upper bits and check that all $N lower bits are 0
+    # Remove upper bits and check that all ${mask_num} lower bits are 0
     if [ $ip1 -ge 0 ] && [ $ip1 -le 255 ] \
     && [ $ip2 -ge 0 ] && [ $ip2 -le 255 ] \
     && [ $ip3 -ge 0 ] && [ $ip3 -le 255 ] \
     && [ $ip4 -ge 0 ] && [ $ip4 -le 255 ] \
-    && [ $N -ge 0 ] && [ $N -le 32 ]
+    && [ ${mask_num} -ge 0 ] && [ ${mask_num} -le 32 ]
     then
         ipaddr=${ip1}.${ip2}.${ip3}.${ip4}
-        mask=`cdr2mask ${N}`;
-        network=`get_network_no ${ipaddr} $N`;
-        echo "${ipaddr}|${mask}|${N}|${network}"
+        mask=`cdr2mask ${mask_num}`;
+        network=`get_network_no ${ipaddr} ${mask_num}`;
+        echo "${ipaddr}|${mask}|${mask_num}|${network}"
         return 0
     else
         echo "IP address over range! [0.0.0.0/0-255.255.255.255/32]";
@@ -174,6 +179,8 @@ install_pkg() {
 	apt install -y dnsmasq ifupdown nfs-common samba
 	apt install -y net-tools tcpdump bridge-utils iptraf iftop openssl
 	apt install -y unzip vim-tiny tree wget curl
+    # iptables save
+	apt install -y iptables-persistent
 }
 
 # network setting
@@ -236,9 +243,7 @@ iptables_set() {
 
 	# LAN interface
 	iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
-
-	# iptables save
-	apt install -y iptables-persistent
+    iptables-save > /etc/iptables/rules.v4
 }
 
 # dnsmasq setting
@@ -249,24 +254,28 @@ dnsmasq_set() {
     mkdir -p /var/log/dnsmasq/
 
 	# dnsmasq dhcp
-	DHCP_RANGE="listen-address=0.0.0.0,127.0.0.1
-	resolv-file=/etc/dnsmasq.d/resolv.dnsmasq.conf
-	log-facility=/var/log/dnsmasq/dnsmasq.log
-	log-async=100
-	conf-dir=/etc/dnsmasq.d\n";
+	DHCP_LISTEN="listen-address=127.0.0.1"
 	DNS_ADDRESS=""
     for k in ${!M_IFACE[@]}; do
 		if [ "${k}" != "_wan" ]; then
 			IFS="|" read -r addr mask mask_num network itype <<< ${M_IFACE[$k]}
 			if [ ${itype} -ne 0 ]; then
 				# dhcp-range=interface:eth1,192.168.2.128,192.168.2.254,24h
-				DHCP_RANGE="${DHCP_RANGE}\tdhcp-range=interface:${k},0.0.0.0,255.255.255.255,48h\n"
-				DNS_ADDRESS="${DNS_ADDRESS}address=/me.games.play/${addr}\n"
+                broadcast=`get_network_broadcast ${addr} ${mask_num}`
+
+                DHCP_LISTEN="${DHCP_LISTEN},${addr}"
+				DHCP_RANGE="${DHCP_RANGE}dhcp-range=interface:${k},${network},${broadcast},48h\n"
+				DNS_ADDRESS="${DNS_ADDRESS}address=/${k}.games.play/${addr}\n"
 			fi
 		fi
     done
 
-	echo -e "${DHCP_RANGE}" > ${ETC_DIR}/dnsmasq.conf
+    DHCP_RANGE="${DHCP_RANGE}resolv-file=/etc/dnsmasq.d/resolv.dnsmasq.conf\n"
+	DHCP_RANGE="${DHCP_RANGE}log-facility=/var/log/dnsmasq/dnsmasq.log\n"
+	DHCP_RANGE="${DHCP_RANGE}log-async=100\n"
+    DHCP_RANGE="${DHCP_RANGE}conf-dir=/etc/dnsmasq.d\n";
+
+	echo -e "${DHCP_LISTEN}\n${DHCP_RANGE}" > ${ETC_DIR}/dnsmasq.conf
 
 	# dnsmasq address
 	echo -e "${DNS_ADDRESS}" > ${ETC_DIR}/dnsmasq.d/address.conf
@@ -307,11 +316,11 @@ stop_systemd() {
     mv /usr/lib/systemd/system/systemd-networkd.service /usr/lib/systemd/system/systemd-networkd.service.bak
     mv /usr/lib/systemd/system/systemd-networkd.socket /usr/lib/systemd/system/systemd-networkd.socket.bak
 
-    rm /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
-    rm /etc/systemd/system/dbus-org.freedesktop.network1.service
-    rm /etc/systemd/system/sockets.target.wants/systemd-networkd.socket
-    rm /etc/systemd/system/multi-user.target.wants/systemd-networkd.service
-    rm /etc/systemd/system/sysinit.target.wants/systemd-network-generator.service
+    rm -f /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+    rm -f /etc/systemd/system/dbus-org.freedesktop.network1.service
+    rm -f /etc/systemd/system/sockets.target.wants/systemd-networkd.socket
+    rm -f /etc/systemd/system/multi-user.target.wants/systemd-networkd.service
+    rm -f /etc/systemd/system/sysinit.target.wants/systemd-network-generator.service
 }
 
 main() {
