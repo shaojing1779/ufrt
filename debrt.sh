@@ -301,8 +301,18 @@ stop_systemd() {
 	# dnsmasq resolv
 	echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
 	systemctl disable --now systemd-resolved.service
-	systemctl disable --now systemd-networkd.service
-    systemctl disable --now systemd-networkd.socket
+	systemctl disable --now systemd-networkd.socket systemd-networkd.service
+
+    # remove
+    apt remove -y systemd-resolved
+    mv /usr/lib/systemd/system/systemd-networkd.service /usr/lib/systemd/system/systemd-networkd.service.bak
+    mv /usr/lib/systemd/system/systemd-networkd.socket /usr/lib/systemd/system/systemd-networkd.socket.bak
+    
+    rm /etc/systemd/system/network-online.target.wants/systemd-networkd-wait-online.service
+    rm /etc/systemd/system/dbus-org.freedesktop.network1.service
+    rm /etc/systemd/system/sockets.target.wants/systemd-networkd.socket
+    rm /etc/systemd/system/multi-user.target.wants/systemd-networkd.service
+    rm /etc/systemd/system/sysinit.target.wants/systemd-network-generator.service
 }
 
 main() {
