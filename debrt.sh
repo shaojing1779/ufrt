@@ -34,14 +34,14 @@ mask2cdr() {
    echo $(( $2 + (${#x}/4) ))
 }
 
-function cdr2mask {
+cdr2mask() {
    # Number of args to shift, 255..255, first non-255 byte, zeroes
    set -- $(( 5 - ($1 / 8) )) 255 255 255 255 $(( (255 << (8 - ($1 % 8))) & 255 )) 0 0 0
    [ $1 -gt 1 ] && shift $1 || shift
    echo ${1-0}.${2-0}.${3-0}.${4-0}
 }
 
-
+# get network number
 get_network_no() {
 
     IFS=. read -r i1 i2 i3 i4 <<< ${1}
@@ -51,6 +51,7 @@ get_network_no() {
     return 0;
 }
 
+# get network broadcast
 get_network_broadcast() {
     IFS=. read -r i1 i2 i3 i4 <<< ${1}
     mask=`cdr2mask ${2}`;
@@ -243,7 +244,9 @@ iptables_set() {
 
 	# LAN interface
 	iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
+    ip6tables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
     iptables-save > /etc/iptables/rules.v4
+    ip6tables-save > /etc/iptables/rules.v6
 }
 
 # dnsmasq setting
@@ -260,7 +263,6 @@ dnsmasq_set() {
 		if [ "${k}" != "_wan" ]; then
 			IFS="|" read -r addr mask mask_num network itype <<< ${M_IFACE[$k]}
 			if [ ${itype} -ne 0 ]; then
-				# dhcp-range=interface:eth1,192.168.2.128,192.168.2.254,24h
                 broadcast=`get_network_broadcast ${addr} ${mask_num}`
 
                 DHCP_LISTEN="${DHCP_LISTEN},${addr}"
