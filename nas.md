@@ -59,15 +59,34 @@ vol-list zfs-pool-vm
 vol-upload --pool zfs-pool-vm --vol vol1 --file /home/novel/FreeBSD-10.0-RELEASE-amd64-memstick.img
 # zvol 2 img
 vol-download --pool zfs-pool-vm --vol vol1 --file /home/novel/zfsfilepool_vol1.img
+# create vol
+vol-create-as --pool zfs-pool-vm --name vol2 --capacity 1G
+# delete vol
+vol-delete --pool zfs-pool-vm vol2
 
 ```
 
-### Define VM
+### libvirt
 
 ```bash
-# add a zfs vol as VM
+# Define VM
 <disk type='volume' device='disk'>
     <source pool='zfs-pool-vm' volume='vol1'/>
     <target dev='vdb' bus='virtio'/>
 </disk>
+
+# Define Pool
+<pool type='zfs'>
+  <name>zfs-pool-vm</name>
+  <uuid>ad0e1ea6-6ab8-4e06-a04a-631ac340539f</uuid>
+  <capacity unit='bytes'>255550554112</capacity>
+  <allocation unit='bytes'>16516222976</allocation>
+  <available unit='bytes'>239034331136</available>
+  <source>
+    <name>pool-vm</name>
+  </source>
+  <target>
+    <path>/dev/zvol/pool-vm</path>
+  </target>
+</pool>
 ```
