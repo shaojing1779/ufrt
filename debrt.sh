@@ -312,6 +312,7 @@ stop_systemd() {
 	echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
 	systemctl disable --now systemd-resolved.service
 	systemctl disable --now systemd-networkd.socket systemd-networkd.service
+    # sudo systemctl mask systemd-networkd
 
     # remove
     apt remove -y systemd-resolved

@@ -75,18 +75,45 @@ vol-delete --pool zfs-pool-vm vol2
     <target dev='vdb' bus='virtio'/>
 </disk>
 
-# Define Pool
+# Define Pool as zfs
 <pool type='zfs'>
   <name>zfs-pool-vm</name>
-  <uuid>ad0e1ea6-6ab8-4e06-a04a-631ac340539f</uuid>
-  <capacity unit='bytes'>255550554112</capacity>
-  <allocation unit='bytes'>16516222976</allocation>
-  <available unit='bytes'>239034331136</available>
   <source>
     <name>pool-vm</name>
   </source>
   <target>
     <path>/dev/zvol/pool-vm</path>
+  </target>
+</pool>
+
+# or
+<pool type="zfs">
+  <name>myzfspool</name>
+  <source>
+    <name>zpoolname</name>
+    <device path="/dev/ada1"/>
+    <device path="/dev/ada2"/>
+  </source>
+</pool>
+
+# Defile Pool as Directory
+<pool type="dir">
+  <name>virtimages</name>
+  <target>
+    <path>/var/lib/virt/images</path>
+  </target>
+</pool>
+
+# Define Pool as nfs
+<pool type="netfs">
+  <name>virtimages</name>
+  <source>
+    <host name="nfs.example.com"/>
+    <dir path="/var/lib/virt/images"/>
+    <format type='nfs'/>
+  </source>
+  <target>
+    <path>/var/lib/virt/images</path>
   </target>
 </pool>
 ```
