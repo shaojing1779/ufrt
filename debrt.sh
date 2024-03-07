@@ -122,7 +122,7 @@ check_iface_list() {
     for i in "${v_iface[@]}"; do
         M_IFACE["${i}"]=${i}
         if [ "${i}" != "${M_IFALL["${i}"]}" ] ; then
-            err_not_exist="${err_not_exist} \'${i}\'"
+            err_not_exist="${err_not_exist} '${i}'"
         fi
     done
 
@@ -144,7 +144,7 @@ check_iface_list() {
             done
             for i in ${!M_IFACE[@]}; do
                 if [ "${i}" == "${M_IFUSED[${i}]}" ]; then
-                    err_used_iface="${err_used_iface} \'${i}\' used in \'${k}\'"
+                    err_used_iface="${err_used_iface} '${i}' used in '${k}'"
                 fi
             done
         fi
