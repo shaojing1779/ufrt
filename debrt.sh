@@ -337,7 +337,7 @@ dnsmasq_set() {
 	DNS_ADDRESS=""
     for k in ${!M_INET[@]}; do
 		if [ "${k}" != "_gw" ]; then
-			IFS="|" read -r addr mask mask_num network itype <<< ${M_INET[$k]}
+			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
 			if [ ${itype} -ne 0 ]; then
                 broadcast=`get_network_broadcast ${addr} ${mask_num}`
 
