@@ -283,8 +283,8 @@ network_set() {
 				WAN_CFILE="${WAN_CFILE}\tdns-nameservers $dns1\n"
 			else
 				LAN_CFILE="${LAN_CFILE}# The LAN${itype} network interface\n"
-				LAN_CFILE="${LAN_CFILE}auto lan${itype}\n"
-				LAN_CFILE="${LAN_CFILE}\tiface lan${itype} inet static\n"
+				LAN_CFILE="${LAN_CFILE}auto vlan${itype}\n"
+				LAN_CFILE="${LAN_CFILE}\tiface vlan${itype} inet static\n"
 				LAN_CFILE="${LAN_CFILE}\taddress ${addr}/${mask_num}\n"
                 LAN_CFILE="${LAN_CFILE}\tbridge_ports ${iface}\n"
                 LAN_CFILE="${LAN_CFILE}\tbridge_stp on\n"
