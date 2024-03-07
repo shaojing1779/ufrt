@@ -94,13 +94,79 @@ valid_cidr() {
 }
 
 
-# show interface
+# show interface status
 show_iface() {
     ip -br l show 2>/dev/null | awk '$0 !~ "lo|vir|wl|vnet|veth"{print $0}'
 }
 
+# check interface list, return error interface
+# return: code|str : 0-ok,3-done
+check_iface_list() {
+    # check done
+    v_iface=(${1})
+    if [ "${v_iface[0]}" == "done" ] || [ "${v_iface[0]}" == "exit" ] ; then
+        echo "3|done"
+        return 3
+    fi
+
+    # check interface exist
+    declare -A M_IFALL=()
+    v_ifall=(`ip -br l show 2>/dev/null| awk '$0 !~ "lo|vir|wl|vnet|veth"{print $1}'`)
+
+    for i in "${v_ifall[@]}"; do
+        M_IFALL["${i}"]=${i}
+    done
+
+    declare -A M_IFACE=()
+    err_not_exist=""
+    for i in "${v_iface[@]}"; do
+        M_IFACE["${i}"]=${i}
+        if [ "${i}" != "${M_IFALL["${i}"]}" ] ; then
+            err_not_exist="${err_not_exist} \'${i}\'"
+        fi
+    done
+
+    # error: iface not exist!
+    if [ "${err_not_exist}" != "" ]; then
+        echo "1|${err_not_exist} not exist"
+        return 1
+    fi
+
+    # check if the iface is used
+    err_used_iface=""
+    for k in ${!M_INET[@]}; do
+		if [ "${k}" != "_gw" ]; then
+			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
+            v_ifused=(${iface})
+            declare -A M_IFUSED=()
+            for i in "${v_ifused[@]}"; do
+                M_IFUSED["${i}"]=${i}
+            done
+            for i in ${!M_IFACE[@]}; do
+                if [ "${i}" == "${M_IFUSED[${i}]}" ]; then
+                    err_used_iface="${err_used_iface} \'${i}\' used in \'${k}\'"
+                fi
+            done
+        fi
+    done
+
+    # error: iface is used!
+    if [ "${err_used_iface}" != "" ]; then
+        echo "2|${err_used_iface}"
+        return 2
+    fi
+
+    # deduplication
+    ret_iface_list=""
+    for k in ${!M_IFACE[@]}; do
+        ret_iface_list="${ret_iface_list} ${k}"
+    done
+
+    echo "0|${ret_iface_list}"
+    return 0
+}
 # declare map interfaces data
-declare -A M_IFACE=()
+declare -A M_INET=()
 
 # config interface
 conf_iface() {
@@ -112,16 +178,14 @@ conf_iface() {
             NET_MARK='wan'
             read -p "Input WAN interface name or 'done': " iface
         else
-            NET_MARK=lan${LAN_FLAG}
-            read -p "Input LAN${LAN_FLAG} interface list [eth1,eth2] or 'done': " iface
+            NET_MARK=vlan${LAN_FLAG}
+            read -p "Input LAN${LAN_FLAG} interface list [ethx1 ethx2...] or 'done': " iface
         fi
 
-        # value=`ip -br l show ${iface} 2>/dev/null| awk '$0 !~ "lo|vir|wl|vnet|veth"{print $1}'`
+        # check iface list
+        IFS="|" read -r code value <<< `check_iface_list ${iface}`
 
-        # check iface
-        value=${iface}
-
-        if [ "${value}" != "" ] && [ "${value}" == "${iface}" ]; then
+        if [ "${code}" == "0" ] ; then
 
             while true; do
                 read -p "Input ${NET_MARK} IP address [x.x.x.x/n]: " ipaddr
@@ -131,16 +195,14 @@ conf_iface() {
                     echo "[${iface}] IP address error!, input again!"
                     continue;
                 else
-                    # M_IFACE[${iface}]=${result}
-                    M_IFACE[${NET_MARK}]=${result}
+                    M_INET[${NET_MARK}]=${result}
                     break;
                 fi
             done
 
             # Gateway & DNS
             if [ ${LAN_FLAG} -eq 0 ]; then
-
-                M_IFACE["_gw"]="${iface}"
+                M_INET["_gw"]="${iface}"
                 while true; do
                     read -p "Input default gateway [x.x.x.x]: " gw
                     check_fmt_addr ${gw}
@@ -148,7 +210,7 @@ conf_iface() {
                         echo "IP address format error! exp: [10.0.0.1]"
                         continue;
                     else
-                        M_IFACE["_gw"]="${M_IFACE["_gw"]}|${gw}"
+                        M_INET["_gw"]="${M_INET["_gw"]}|${gw}"
                         break;
                     fi
                 done
@@ -160,24 +222,23 @@ conf_iface() {
                         echo "IP address format error! exp: [1.1.1.1]"
                         continue;
                     else
-                        M_IFACE["_gw"]="${M_IFACE["_gw"]}|${dns1}"
+                        M_INET["_gw"]="${M_INET["_gw"]}|${dns1}"
                         break;
                     fi
                 done
-                # M_IFACE["_gw"]="${gw}|${dns1}"
             fi
             let LAN_FLAG++
-        elif [ "${iface}" == "done" ] || [ "${iface}" == "exit" ]; then
+        elif [ "${code}" == "3" ] ; then
             break;
         else
-            echo "Device [${iface}] does not exist, input again!"
+            echo "Error: [${code}], ${value} ,please input again!"
         fi
     done
 
     printf "\n"
     # Note that we're stepping through KEYS here, not values.
-    for k in ${!M_IFACE[@]}; do
-        printf '"%s: %s"\n' "${k}" "${M_IFACE[${k}]}"
+    for k in ${!M_INET[@]}; do
+        printf '"%s: %s"\n' "${k}" "${M_INET[${k}]}"
     done
 
 }
@@ -195,23 +256,24 @@ install_pkg() {
 # network setting
 network_set() {
 	# create interfaces directory
-	mkdir -p ${ETC_DIR}/network/interfaces.d;
+	mkdir -p ${ETC_DIR}/network/interfaces.d
 	mkdir -p ${ETC_DIR}/network/if-up.d/
+    rm ${ETC_DIR}/network/interfaces.d/*.iface
 	# ip address setting
 	echo -e "source ${ETC_DIR}/network/interfaces.d/*\n" > ${ETC_DIR}/network/interfaces
 
 	# loopback
-	echo -e "# The loopback network interface\nauto lo\n\tiface lo inet loopback \n" > ${ETC_DIR}/network/interfaces.d/static.iface
+	echo -e "# The loopback network interface\nauto lo\n\tiface lo inet loopback \n" > ${ETC_DIR}/network/interfaces.d/lo.iface
 
 	LAN_CFILE=""
 	WAN_CFILE=""
 	RUT_CFILE="#!/bin/sh"
-    for k in ${!M_IFACE[@]}; do
+    for k in ${!M_INET[@]}; do
 		if [ "${k}" != "_gw" ]; then
-			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_IFACE[$k]}
+			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
 
 			if [ ${itype} -eq 0 ]; then
-				IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
+				IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
 				WAN_CFILE="${WAN_CFILE}# The WAN network interface\n"
 				WAN_CFILE="${WAN_CFILE}auto ${iface}\n"
@@ -239,7 +301,7 @@ network_set() {
     done
 
 	echo -e "${WAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/wan.iface
-	echo -e "${LAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/lan.iface
+	echo -e "${LAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/vlan.iface
 	echo -e "${RUT_CFILE}fi" > ${ETC_DIR}/network/if-up.d/route
 	chmod +x ${ETC_DIR}/network/if-up.d/route
 }
@@ -254,7 +316,7 @@ ip_forward_set() {
 # iptables setting
 iptables_set() {
 	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
+	IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
 	# LAN interface
 	iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
@@ -273,9 +335,9 @@ dnsmasq_set() {
 	# dnsmasq dhcp
 	DHCP_LISTEN="listen-address=127.0.0.1"
 	DNS_ADDRESS=""
-    for k in ${!M_IFACE[@]}; do
+    for k in ${!M_INET[@]}; do
 		if [ "${k}" != "_gw" ]; then
-			IFS="|" read -r addr mask mask_num network itype <<< ${M_IFACE[$k]}
+			IFS="|" read -r addr mask mask_num network itype <<< ${M_INET[$k]}
 			if [ ${itype} -ne 0 ]; then
                 broadcast=`get_network_broadcast ${addr} ${mask_num}`
 
@@ -297,7 +359,7 @@ dnsmasq_set() {
 	echo -e "${DNS_ADDRESS}" > ${ETC_DIR}/dnsmasq.d/address.conf
 
 	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
+	IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
 	# dnsmasq resolv
 	echo "all-servers
@@ -320,7 +382,7 @@ stop_systemd() {
 	mv ${ETC_DIR}/resolv.conf ${ETC_DIR}/resolv.conf.${DATE}
 
 	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
+	IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
 	# dnsmasq resolv
 	echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
@@ -344,7 +406,7 @@ main() {
 	echo "--------------start---------------"
 	install_pkg;
 	# ip forward setting
-    ip_forward_set();
+    ip_forward_set;
     # config interface
 	conf_iface;
 	# network setting
