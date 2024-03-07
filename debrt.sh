@@ -107,24 +107,32 @@ conf_iface() {
     let LAN_FLAG=0
     while true; do
         show_iface;
+        NET_MARK=''
         if [ ${LAN_FLAG} -eq 0 ]; then
+            NET_MARK='wan'
             read -p "Input WAN interface name or 'done': " iface
         else
-            read -p "Input LAN${LAN_FLAG} interface name or 'done': " iface
+            NET_MARK=lan${LAN_FLAG}
+            read -p "Input LAN${LAN_FLAG} interface list [eth1,eth2] or 'done': " iface
         fi
 
-        value=`ip -br l show ${iface} 2>/dev/null| awk '$0 !~ "lo|vir|wl|vnet|veth"{print $1}'`
+        # value=`ip -br l show ${iface} 2>/dev/null| awk '$0 !~ "lo|vir|wl|vnet|veth"{print $1}'`
+
+        # check iface
+        value=${iface}
+
         if [ "${value}" != "" ] && [ "${value}" == "${iface}" ]; then
 
             while true; do
-                read -p "Input IP address [x.x.x.x/n]: " ipaddr
-                result="$(valid_cidr ${ipaddr})|${LAN_FLAG}"
+                read -p "Input ${NET_MARK} IP address [x.x.x.x/n]: " ipaddr
+                result="$(valid_cidr ${ipaddr})|${iface}|${LAN_FLAG}"
 
                 if [ $? -ne 0 ]; then
                     echo "[${iface}] IP address error!, input again!"
                     continue;
                 else
-                    M_IFACE[${iface}]=${result}
+                    # M_IFACE[${iface}]=${result}
+                    M_IFACE[${NET_MARK}]=${result}
                     break;
                 fi
             done
@@ -132,7 +140,7 @@ conf_iface() {
             # Gateway & DNS
             if [ ${LAN_FLAG} -eq 0 ]; then
 
-                M_IFACE["_wan"]="${iface}"
+                M_IFACE["_gw"]="${iface}"
                 while true; do
                     read -p "Input default gateway [x.x.x.x]: " gw
                     check_fmt_addr ${gw}
@@ -140,7 +148,7 @@ conf_iface() {
                         echo "IP address format error! exp: [10.0.0.1]"
                         continue;
                     else
-                        M_IFACE["_wan"]="${M_IFACE["_wan"]}|${gw}"
+                        M_IFACE["_gw"]="${M_IFACE["_gw"]}|${gw}"
                         break;
                     fi
                 done
@@ -152,11 +160,11 @@ conf_iface() {
                         echo "IP address format error! exp: [1.1.1.1]"
                         continue;
                     else
-                        M_IFACE["_wan"]="${M_IFACE["_wan"]}|${dns1}"
+                        M_IFACE["_gw"]="${M_IFACE["_gw"]}|${dns1}"
                         break;
                     fi
                 done
-                # M_IFACE["_wan"]="${gw}|${dns1}"
+                # M_IFACE["_gw"]="${gw}|${dns1}"
             fi
             let LAN_FLAG++
         elif [ "${iface}" == "done" ] || [ "${iface}" == "exit" ]; then
@@ -199,23 +207,26 @@ network_set() {
 	WAN_CFILE=""
 	RUT_CFILE="#!/bin/sh"
     for k in ${!M_IFACE[@]}; do
-		if [ "${k}" != "_wan" ]; then
-			IFS="|" read -r addr mask mask_num network itype <<< ${M_IFACE[$k]}
+		if [ "${k}" != "_gw" ]; then
+			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_IFACE[$k]}
 
 			if [ ${itype} -eq 0 ]; then
-				IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_wan"]}
+				IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
 
 				WAN_CFILE="${WAN_CFILE}# The WAN network interface\n"
-				WAN_CFILE="${WAN_CFILE}auto ${k}\n"
-				WAN_CFILE="${WAN_CFILE}\tiface ${k} inet static\n"
+				WAN_CFILE="${WAN_CFILE}auto ${iface}\n"
+				WAN_CFILE="${WAN_CFILE}\tiface ${iface} inet static\n"
 				WAN_CFILE="${WAN_CFILE}\taddress ${addr}/${mask_num}\n"
 				WAN_CFILE="${WAN_CFILE}\tgateway ${gw}\n"
 				WAN_CFILE="${WAN_CFILE}\tdns-nameservers $dns1\n"
 			else
 				LAN_CFILE="${LAN_CFILE}# The LAN${itype} network interface\n"
-				LAN_CFILE="${LAN_CFILE}auto ${k}\n"
-				LAN_CFILE="${LAN_CFILE}\tiface ${k} inet static\n"
+				LAN_CFILE="${LAN_CFILE}auto lan${itype}\n"
+				LAN_CFILE="${LAN_CFILE}\tiface lan${itype} inet static\n"
 				LAN_CFILE="${LAN_CFILE}\taddress ${addr}/${mask_num}\n"
+                LAN_CFILE="${LAN_CFILE}\tbridge_ports ${iface}\n"
+                LAN_CFILE="${LAN_CFILE}\tbridge_stp on\n"
+
 				if [ "${RUT_CFILE}" == "#!/bin/sh" ]; then
 					RUT_CFILE="${RUT_CFILE}\n"
 					RUT_CFILE="${RUT_CFILE}if [ \"\$IFACE\" = \"${k}\" ]; then\n"
@@ -227,20 +238,23 @@ network_set() {
 		fi
     done
 
-	echo -e "${WAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/static.iface
-	echo -e "${LAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/static.iface
+	echo -e "${WAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/wan.iface
+	echo -e "${LAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/lan.iface
 	echo -e "${RUT_CFILE}fi" > ${ETC_DIR}/network/if-up.d/route
 	chmod +x ${ETC_DIR}/network/if-up.d/route
 }
 
-# iptables setting
-iptables_set() {
+# set ip forward
+ip_forward_set() {
 	# ip_forward
 	echo "net.ipv4.ip_forward = 1" > ${ETC_DIR}/sysctl.conf && sysctl -p
 	echo "net.ipv6.conf.all.forwarding = 1" >> ${ETC_DIR}/sysctl.conf && sysctl -p
+}
 
+# iptables setting
+iptables_set() {
 	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_wan"]}
+	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
 
 	# LAN interface
 	iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
@@ -260,7 +274,7 @@ dnsmasq_set() {
 	DHCP_LISTEN="listen-address=127.0.0.1"
 	DNS_ADDRESS=""
     for k in ${!M_IFACE[@]}; do
-		if [ "${k}" != "_wan" ]; then
+		if [ "${k}" != "_gw" ]; then
 			IFS="|" read -r addr mask mask_num network itype <<< ${M_IFACE[$k]}
 			if [ ${itype} -ne 0 ]; then
                 broadcast=`get_network_broadcast ${addr} ${mask_num}`
@@ -283,7 +297,7 @@ dnsmasq_set() {
 	echo -e "${DNS_ADDRESS}" > ${ETC_DIR}/dnsmasq.d/address.conf
 
 	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_wan"]}
+	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
 
 	# dnsmasq resolv
 	echo "all-servers
@@ -306,7 +320,7 @@ stop_systemd() {
 	mv ${ETC_DIR}/resolv.conf ${ETC_DIR}/resolv.conf.${DATE}
 
 	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_wan"]}
+	IFS="|" read -r ifwan gw dns1 <<< ${M_IFACE["_gw"]}
 
 	# dnsmasq resolv
 	echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
@@ -329,14 +343,16 @@ stop_systemd() {
 main() {
 	echo "--------------start---------------"
 	install_pkg;
-	# config interface
+	# ip forward setting
+    ip_forward_set();
+    # config interface
 	conf_iface;
 	# network setting
 	network_set;
     # sys init
 	stop_systemd;
 	# iptables setting
-	iptables_set;
+	# iptables_set;
 	# dnsmasq setting
 	dnsmasq_set;
 	# start server
