@@ -403,25 +403,25 @@ stop_systemd() {
 }
 
 main() {
-	echo "--------------start---------------"
-	install_pkg;
-	# ip forward setting
+    echo "--------------start---------------"
+    install_pkg;
+    # ip forward setting
     ip_forward_set;
     # config interface
-	conf_iface;
-	# network setting
-	network_set;
+    conf_iface;
+    # network setting
+    network_set;
     # sys init
-	stop_systemd;
-	# iptables setting
-	# iptables_set;
-	# dnsmasq setting
-	dnsmasq_set;
-	# start server
-	start_server;
-	# restart system
-	reboot;
-	echo "--------------finish---------------"
+    stop_systemd;
+    # iptables setting
+    iptables_set;
+    # dnsmasq setting
+    dnsmasq_set;
+    # start server
+    start_server;
+    # restart system
+    reboot;
+    echo "--------------finish---------------"
 }
 
 main;
