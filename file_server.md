@@ -15,8 +15,6 @@ path = /home/usr1
 public = yes
 writeable = yes
 browseable = yes
-guest ok = no
-read only = no
 
 # 添加用户名/密码
 smbpasswd -a usr1
@@ -26,10 +24,26 @@ systeamctl restart smbd
 # 设置开机启动
 systeamctl restart smbd
 
+# 免密码配置 加上 "security" 和 "map to guest" debian12
+# /etc/samba/smb.conf
+[global]
+    security = user
+    map to guest = Bad User
+[public-dir]
+    comment = Work Dir
+    path = /public-dir/
+    public = yes
+    writeable = yes
+    browseable = yes
+    guest ok = yes
+
 ```
 
-###  reference
+### reference
 
 ```bash
-
+samba
+nfs
+ftp
+webdav
 ```

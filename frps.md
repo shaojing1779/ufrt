@@ -17,9 +17,9 @@ ln -s frp_0.51.3_linux_amd64 frp
 # 修改配置文件
 # frpc.ini
 [common]
-server_addr = frps.coolbit.work
+server_addr = frps.example.com
 server_port = 7112
-token = sam&frodo
+token = token-value
 
 [nuc_ssh]
 type = tcp
