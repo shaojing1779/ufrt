@@ -5,7 +5,7 @@ ETC_DIR=/etc
 
 # create deploy directory
 mk_work_dir() {
-	DEP_DIR=/opt/debrt; mkdir -p $DEP_DIR
+    DEP_DIR=/opt/debrt; mkdir -p $DEP_DIR
 }
 
 check_fmt_cidr() {
@@ -135,8 +135,8 @@ check_iface_list() {
     # check if the iface is used
     err_used_iface=""
     for k in ${!M_INET[@]}; do
-		if [ "${k}" != "_gw" ]; then
-			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
+        if [ "${k}" != "_gw" ]; then
+            IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
             v_ifused=(${iface})
             declare -A M_IFUSED=()
             for i in "${v_ifused[@]}"; do
@@ -245,81 +245,82 @@ conf_iface() {
 
 # install packages
 install_pkg() {
-	apt update -y;
-	apt install -y dnsmasq ifupdown nfs-common samba
-	apt install -y net-tools tcpdump bridge-utils iptraf iftop openssl
-	apt install -y unzip vim-tiny tree wget curl
+    apt update -y;
+    apt install -y dnsmasq ifupdown nfs-common samba
+    apt install -y net-tools tcpdump bridge-utils iptraf iftop openssl
+    apt install -y unzip vim-tiny tree wget curl
+    apt install -y munin
     # iptables save
-	apt install -y iptables-persistent
+    apt install -y iptables-persistent
 }
 
 # network setting
 network_set() {
-	# create interfaces directory
-	mkdir -p ${ETC_DIR}/network/interfaces.d
-	mkdir -p ${ETC_DIR}/network/if-up.d/
+    # create interfaces directory
+    mkdir -p ${ETC_DIR}/network/interfaces.d
+    mkdir -p ${ETC_DIR}/network/if-up.d/
     rm ${ETC_DIR}/network/interfaces.d/*.iface
-	# ip address setting
-	echo -e "source ${ETC_DIR}/network/interfaces.d/*\n" > ${ETC_DIR}/network/interfaces
+    # ip address setting
+    echo -e "source ${ETC_DIR}/network/interfaces.d/*\n" > ${ETC_DIR}/network/interfaces
 
-	# loopback
-	echo -e "# The loopback network interface\nauto lo\n\tiface lo inet loopback \n" > ${ETC_DIR}/network/interfaces.d/lo.iface
+    # loopback
+    echo -e "# The loopback network interface\nauto lo\n\tiface lo inet loopback \n" > ${ETC_DIR}/network/interfaces.d/lo.iface
 
-	LAN_CFILE=""
-	WAN_CFILE=""
-	RUT_CFILE="#!/bin/sh"
+    LAN_CFILE=""
+    WAN_CFILE=""
+    RUT_CFILE="#!/bin/sh"
     for k in ${!M_INET[@]}; do
-		if [ "${k}" != "_gw" ]; then
-			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
+        if [ "${k}" != "_gw" ]; then
+            IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
 
-			if [ ${itype} -eq 0 ]; then
-				IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
+            if [ ${itype} -eq 0 ]; then
+                IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
-				WAN_CFILE="${WAN_CFILE}# The WAN network interface\n"
-				WAN_CFILE="${WAN_CFILE}auto ${iface}\n"
-				WAN_CFILE="${WAN_CFILE}\tiface ${iface} inet static\n"
-				WAN_CFILE="${WAN_CFILE}\taddress ${addr}/${mask_num}\n"
-				WAN_CFILE="${WAN_CFILE}\tgateway ${gw}\n"
-				WAN_CFILE="${WAN_CFILE}\tdns-nameservers $dns1\n"
-			else
-				LAN_CFILE="${LAN_CFILE}# The LAN${itype} network interface\n"
-				LAN_CFILE="${LAN_CFILE}auto ${k}\n"
-				LAN_CFILE="${LAN_CFILE}\tiface ${k} inet static\n"
-				LAN_CFILE="${LAN_CFILE}\taddress ${addr}/${mask_num}\n"
+                WAN_CFILE="${WAN_CFILE}# The WAN network interface\n"
+                WAN_CFILE="${WAN_CFILE}auto ${iface}\n"
+                WAN_CFILE="${WAN_CFILE}\tiface ${iface} inet static\n"
+                WAN_CFILE="${WAN_CFILE}\taddress ${addr}/${mask_num}\n"
+                WAN_CFILE="${WAN_CFILE}\tgateway ${gw}\n"
+                WAN_CFILE="${WAN_CFILE}\tdns-nameservers $dns1\n"
+            else
+                LAN_CFILE="${LAN_CFILE}# The LAN${itype} network interface\n"
+                LAN_CFILE="${LAN_CFILE}auto ${k}\n"
+                LAN_CFILE="${LAN_CFILE}\tiface ${k} inet static\n"
+                LAN_CFILE="${LAN_CFILE}\taddress ${addr}/${mask_num}\n"
                 LAN_CFILE="${LAN_CFILE}\tbridge_ports ${iface}\n"
                 LAN_CFILE="${LAN_CFILE}\tbridge_stp on\n"
 
-				if [ "${RUT_CFILE}" == "#!/bin/sh" ]; then
-					RUT_CFILE="${RUT_CFILE}\n"
-					RUT_CFILE="${RUT_CFILE}if [ \"\$IFACE\" = \"${k}\" ]; then\n"
-				else
-					RUT_CFILE="${RUT_CFILE}elif [ \"\$IFACE\" = \"${k}\" ]; then\n"
-				fi
-				RUT_CFILE="${RUT_CFILE}\t# ip route add ${network}/24 via XXX.XXX.XXX.XXX\n\treturn\n"
-			fi
-		fi
+                if [ "${RUT_CFILE}" == "#!/bin/sh" ]; then
+                    RUT_CFILE="${RUT_CFILE}\n"
+                    RUT_CFILE="${RUT_CFILE}if [ \"\$IFACE\" = \"${k}\" ]; then\n"
+                else
+                    RUT_CFILE="${RUT_CFILE}elif [ \"\$IFACE\" = \"${k}\" ]; then\n"
+                fi
+                RUT_CFILE="${RUT_CFILE}\t# ip route add ${network}/24 via XXX.XXX.XXX.XXX\n\treturn\n"
+            fi
+        fi
     done
 
-	echo -e "${WAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/wan.iface
-	echo -e "${LAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/vlan.iface
-	echo -e "${RUT_CFILE}fi" > ${ETC_DIR}/network/if-up.d/route
-	chmod +x ${ETC_DIR}/network/if-up.d/route
+    echo -e "${WAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/wan.iface
+    echo -e "${LAN_CFILE}" >> ${ETC_DIR}/network/interfaces.d/vlan.iface
+    echo -e "${RUT_CFILE}fi" > ${ETC_DIR}/network/if-up.d/route
+    chmod +x ${ETC_DIR}/network/if-up.d/route
 }
 
 # set ip forward
 ip_forward_set() {
-	# ip_forward
-	echo "net.ipv4.ip_forward = 1" > ${ETC_DIR}/sysctl.conf && sysctl -p
-	echo "net.ipv6.conf.all.forwarding = 1" >> ${ETC_DIR}/sysctl.conf && sysctl -p
+    # ip_forward
+    echo "net.ipv4.ip_forward = 1" > ${ETC_DIR}/sysctl.conf && sysctl -p
+    echo "net.ipv6.conf.all.forwarding = 1" >> ${ETC_DIR}/sysctl.conf && sysctl -p
 }
 
 # iptables setting
 iptables_set() {
-	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
+    # get WAN iface info
+    IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
-	# LAN interface
-	iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
+    # LAN interface
+    iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
     ip6tables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
     iptables-save > /etc/iptables/rules.v4
     ip6tables-save > /etc/iptables/rules.v6
@@ -328,66 +329,67 @@ iptables_set() {
 # dnsmasq setting
 dnsmasq_set() {
 
-	# create dnsmasq directory
-	mkdir -p ${ETC_DIR}/dnsmasq.d/;
+    # create dnsmasq directory
+    mkdir -p ${ETC_DIR}/dnsmasq.d/;
     mkdir -p /var/log/dnsmasq/
 
-	# dnsmasq dhcp
-	DHCP_LISTEN="listen-address=127.0.0.1"
-	DNS_ADDRESS=""
+    # dnsmasq dhcp
+    DHCP_LISTEN="listen-address=127.0.0.1"
+    DNS_ADDRESS=""
     for k in ${!M_INET[@]}; do
-		if [ "${k}" != "_gw" ]; then
-			IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
-			if [ ${itype} -ne 0 ]; then
+        if [ "${k}" != "_gw" ]; then
+            IFS="|" read -r addr mask mask_num network iface itype <<< ${M_INET[$k]}
+            if [ ${itype} -ne 0 ]; then
                 broadcast=`get_network_broadcast ${addr} ${mask_num}`
 
                 DHCP_LISTEN="${DHCP_LISTEN},${addr}"
-				DHCP_RANGE="${DHCP_RANGE}dhcp-range=interface:${k},${network},${broadcast},48h\n"
-				DNS_ADDRESS="${DNS_ADDRESS}address=/${k}.games.play/${addr}\n"
-			fi
-		fi
+                DHCP_RANGE="${DHCP_RANGE}dhcp-range=interface:${k},${network},${broadcast},48h\n"
+                DNS_ADDRESS="${DNS_ADDRESS}address=/${k}.games.play/${addr}\n"
+            fi
+        fi
     done
 
     DHCP_RANGE="${DHCP_RANGE}resolv-file=/etc/dnsmasq.d/resolv.dnsmasq.conf\n"
-	DHCP_RANGE="${DHCP_RANGE}log-facility=/var/log/dnsmasq/dnsmasq.log\n"
-	DHCP_RANGE="${DHCP_RANGE}log-async=100\n"
+    DHCP_RANGE="${DHCP_RANGE}log-facility=/var/log/dnsmasq/dnsmasq.log\n"
+    DHCP_RANGE="${DHCP_RANGE}log-async=100\n"
     DHCP_RANGE="${DHCP_RANGE}conf-dir=/etc/dnsmasq.d\n";
 
-	echo -e "${DHCP_LISTEN}\n${DHCP_RANGE}" > ${ETC_DIR}/dnsmasq.conf
+    echo -e "${DHCP_LISTEN}\n${DHCP_RANGE}" > ${ETC_DIR}/dnsmasq.conf
 
-	# dnsmasq address
-	echo -e "${DNS_ADDRESS}" > ${ETC_DIR}/dnsmasq.d/address.conf
+    # dnsmasq address
+    echo -e "${DNS_ADDRESS}" > ${ETC_DIR}/dnsmasq.d/address.conf
 
-	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
+    # get WAN iface info
+    IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
-	# dnsmasq resolv
-	echo "all-servers
-	server=/cn/114.114.114.114
-	server=${dns1}
-	server=/google.com/8.8.8.8" > ${ETC_DIR}/dnsmasq.d/resolv.dnsmasq.conf
+    # dnsmasq resolv
+    echo "all-servers
+    server=/cn/114.114.114.114
+    server=${dns1}
+    server=/google.com/8.8.8.8" > ${ETC_DIR}/dnsmasq.d/resolv.dnsmasq.conf
 }
 
 # start server
 start_server() {
-	systemctl enable --now networking
-	systemctl enable --now sambd
-	systemctl enable --now rpcbind
-	systemctl enable --now sshd
-	systemctl enable --now dnsmasq
+    systemctl enable --now networking
+    systemctl enable --now sambd
+    systemctl enable --now rpcbind
+    systemctl enable --now sshd
+    systemctl enable --now dnsmasq
+    systemctl enable --now munin
 }
 
 # stop systemd server
 stop_systemd() {
-	mv ${ETC_DIR}/resolv.conf ${ETC_DIR}/resolv.conf.${DATE}
+    mv ${ETC_DIR}/resolv.conf ${ETC_DIR}/resolv.conf.${DATE}
 
-	# get WAN iface info
-	IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
+    # get WAN iface info
+    IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
 
-	# dnsmasq resolv
-	echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
-	systemctl disable --now systemd-resolved.service
-	systemctl disable --now systemd-networkd.socket systemd-networkd.service
+    # dnsmasq resolv
+    echo "nameserver ${dns1}" >> ${ETC_DIR}/resolv.conf
+    systemctl disable --now systemd-resolved.service
+    systemctl disable --now systemd-networkd.socket systemd-networkd.service
     # sudo systemctl mask systemd-networkd
 
     # remove
