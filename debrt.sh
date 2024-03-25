@@ -405,6 +405,25 @@ stop_systemd() {
     rm -f /etc/systemd/system/sysinit.target.wants/systemd-network-generator.service
 }
 
+# munin nginx server
+munin_set() {
+    rm /etc/nginx/sites-enabled/default
+    /etc/nginx/conf.d/server.conf
+    echo 'server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        root /var/www/html;
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+        server_name _;
+
+        location / {
+                alias /var/cache/munin/www/;
+        }
+}' > /etc/nginx/conf.d/server.conf
+
+}
+
 main() {
     echo "--------------start---------------"
     install_pkg;
@@ -420,6 +439,8 @@ main() {
     iptables_set;
     # dnsmasq setting
     dnsmasq_set;
+    # munin setting
+    munin_set;
     # start server
     start_server;
     # restart system
