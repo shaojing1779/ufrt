@@ -8,7 +8,7 @@
 ### 网络工具
 
 ```bash
-apt install -y dnsmasq ifupdown nfs-common samba net-tools tcpdump bridge-utils iptraf iftop openssl unzip vim-tiny tree wget curl iptables-persistent
+apt install -y dnsmasq ifupdown nfs-common samba net-tools tcpdump bridge-utils iptraf iftop privoxy openssl unzip vim-tiny tree wget curl iptables-persistent munin nginx-full openvpn
 ```
 
 ### 网络接口管理
@@ -83,10 +83,9 @@ address=/nuc/192.168.31.198
 
 ```
 
-### 常用工具
+### Privoxy
 
 ```bash
-# apt install v2ray privoxy iftop
 # /etc/privoxy/config
 user-manual /usr/share/doc/privoxy/user-manual
 confdir /etc/privoxy
@@ -116,120 +115,23 @@ tolerate-pipelining 1
 socket-timeout 300
 ```
 
-### zfs
+### munin Nginx 设置
 
-```bash
-apt install zfsutils-linux
-# 查看Pool
-zpool list
-# 查看volumes
-zfs list
-# 从data pool创建文件系统
-zfs create data/tank
+```conf
+# rm /etc/nginx/sites-enabled/default
+# /etc/nginx/conf.d/server.conf
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server;
+        root /var/www/html;
+        # Add index.php to the list if you are using PHP
+        index index.html index.htm index.nginx-debian.html;
+        server_name _;
 
-# 获取data/tank的安装点
-zfs get mountpoint data/tank
-# 检查是否已挂载
-zfs get mounted data/tank
-zfs set mountpoint=/YOUR-MOUNT-POINT pool/fs
-zfs set mountpoint=/my_vms data/tank
-cd /my_vms
-df /my_vms
-zfs get mountpoint data/tank
-zfs get mounted data/tank
-
-# 使用-a选项可以挂载所有ZFS托管文件系统。
-zfs mount -a
-# 查看挂载情况
-zfs mount
-# 卸载ZFS文件系统
-zfs unmount data/tank
-
-# 加载已有pool
-zpool import -f pool-vm
-
-```
-
-### virt-zfs support
-
-```bash
-apt install libvirt-daemon-driver-storage-zfs
-
-# define Pool zfs-pool-vm
-[virsh]
-pool-define-as --name zfs-pool-vm --source-name filepool --type zfs
-pool-start zfs-pool-vm
-pool-info zfs-pool-vm
-pool-autostart zfs-pool-vm
-vol-list zfs-pool-vm
-
-```
-
-### qcow2 as zfs-vol && zfs-vol as qcow2
-
-```bash
-[virsh]
-# img 2 zvol
-vol-upload --pool zfs-pool-vm --vol vol1 --file /home/novel/FreeBSD-10.0-RELEASE-amd64-memstick.img
-# zvol 2 img
-vol-download --pool zfs-pool-vm --vol vol1 --file /home/novel/zfsfilepool_vol1.img
-# create vol
-vol-create-as --pool zfs-pool-vm --name vol2 --capacity 1G
-# delete vol
-vol-delete --pool zfs-pool-vm vol2
-
-```
-
-### libvirt
-
-```bash
-# Define VM
-<disk type='volume' device='disk'>
-    <source pool='zfs-pool-vm' volume='vol1'/>
-    <target dev='vdb' bus='virtio'/>
-</disk>
-
-# Define Pool as zfs
-<pool type='zfs'>
-  <name>zfs-pool-vm</name>
-  <source>
-    <name>pool-vm</name>
-  </source>
-  <target>
-    <path>/dev/zvol/pool-vm</path>
-  </target>
-</pool>
-
-# or
-<pool type="zfs">
-  <name>myzfspool</name>
-  <source>
-    <name>zpoolname</name>
-    <device path="/dev/ada1"/>
-    <device path="/dev/ada2"/>
-  </source>
-</pool>
-
-# Defile Pool as Directory
-<pool type="dir">
-  <name>virtimages</name>
-  <target>
-    <path>/var/lib/virt/images</path>
-  </target>
-</pool>
-
-# Define Pool as nfs
-<pool type="netfs">
-  <name>virtimages</name>
-  <source>
-    <host name="nfs.example.com"/>
-    <dir path="/var/lib/virt/images"/>
-    <format type='nfs'/>
-  </source>
-  <target>
-    <path>/var/lib/virt/images</path>
-  </target>
-</pool>
+        location / {
+                alias /var/cache/munin/www/;
+        }
+}
 ```
 
 ### Samba基本配置
@@ -310,47 +212,5 @@ WantedBy=multi-user.target
 
 # 启动服务
 systemctl enable --now frpc
-
-```
-
-### Caddy Web服务
-
-```bash
-# 下载
-https://github.com/caddyserver/caddy/releases/download/v2.7.4/caddy_2.7.4_linux_amd64.tar.gz
-
-# 解压
-tar zxvf caddy_2.7.4_linux_amd64.tar.gz
-sudo groupadd --system caddy
-sudo useradd --system \
-    --gid caddy \
-    --create-home \
-    --home-dir /var/lib/caddy \
-    --shell /usr/sbin/nologin \
-    --comment "Caddy web server" \
-    caddy
-
-# /usr/lib/systemd/system/caddy.service
-[Unit]
-Description=Caddy
-Documentation=https://caddyserver.com/docs/
-After=network.target network-online.target
-Requires=network-online.target
-
-[Service]
-Type=notify
-User=caddy
-Group=caddy
-ExecStart=/usr/local/caddy/caddy run --environ --config /usr/local/caddy/Caddyfile
-ExecReload=/usr/local/caddy/caddy reload --config /usr/bin/caddy/Caddyfile --force
-TimeoutStopSec=5s
-LimitNOFILE=1048576
-LimitNPROC=512
-PrivateTmp=true
-ProtectSystem=full
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-
-[Install]
-WantedBy=multi-user.target
 
 ```

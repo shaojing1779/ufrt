@@ -377,6 +377,7 @@ start_server() {
     systemctl enable --now sshd
     systemctl enable --now dnsmasq
     systemctl enable --now munin
+    systemctl enable --now nginx
 }
 
 # stop systemd server
