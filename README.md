@@ -14,12 +14,11 @@ Debian Router
     . 不提供任何管理界面
     . VLAN全部使用linux bridge网络功能实现
     . DNS/DHCP由dnsmasq实现
+    . 网络监控由munin实现
+    . VPN默认安装OpenVPN
 
 3. 后续计划
     . 提供一个可重入的设置功能(端口设置, 路由设置, vlan设置)
-    . 提供网络状况存储
-    . 提供一个网络监控界面
-    . 提供一个网络历史查询界面
 
 ### Bug & 优化
 
