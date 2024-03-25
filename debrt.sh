@@ -249,7 +249,7 @@ install_pkg() {
     apt install -y dnsmasq ifupdown nfs-common samba
     apt install -y net-tools tcpdump bridge-utils iptraf iftop openssl
     apt install -y unzip vim-tiny tree wget curl
-    apt install -y munin
+    apt install -y munin nginx-full openvpn
     # iptables save
     apt install -y iptables-persistent
 }
