@@ -149,9 +149,9 @@ browseable = yes
 smbpasswd -a usr1
 
 # 重启samba
-systeamctl restart smbd
+systemctl restart smbd
 # 设置开机启动
-systeamctl restart smbd
+systemctl enable smbd
 
 # 免密码配置 加上 "security" 和 "map to guest" debian12
 # /etc/samba/smb.conf
