@@ -231,3 +231,43 @@ WantedBy=multi-user.target
 systemctl enable --now frpc
 
 ```
+
+### hostapd
+
+```bash
+# /etc/network/interfaces.d/brlan0.iface
+auto brlan0
+iface brlan0 inet dhcp
+        pre-up hostapd -B /etc/hostapd/hostapd.conf
+
+# /etc/hostapd/hostapd.conf
+# the interface used by the AP
+interface=wlan0
+driver=nl80211
+bridge=brlan0
+
+# "g" simply means 2.4GHz band a = IEEE 802.11a, b = IEEE 802.11b, g = IEEE 802.11g, ad = IEEE 802.11ad (60 GHz)
+hw_mode=g
+# the channel to use
+channel=11
+# limit the frequencies used to those allowed in the country
+ieee80211d=1
+# the country code
+country_code=FR
+# 802.11n support
+ieee80211ac=1
+# QoS support, also required for full speed on 802.11n/ac/ax
+wmm_enabled=1
+
+ht_capab=[HT40-][SHORT-GI-20][SHORT-GI-40][DSSS_CCK-40][40-INTOLERANT][GF]
+
+# the name of the AP
+ssid=AP-TOM
+# 1=wpa, 2=wep, 3=both
+auth_algs=1
+# WPA2 only
+wpa=2
+wpa_key_mgmt=WPA-PSK
+rsn_pairwise=CCMP
+wpa_passphrase=XXXXXXXX
+```
