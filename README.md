@@ -4,23 +4,20 @@ Debian Router
 
 ## Summary
 
-1. 关于为什么要写这个脚本?
-    提供Debian网关快速部署方式
+1. Features:  
+    . 可支持Debian 10及之后的stable版本  
+    . 可快速完成网络设备部署  
+    . 不提供任何管理界面  
+    . VLAN全部使用linux bridge网络功能实现  
+    . DNS/DHCP由dnsmasq实现  
+    . 网络监控由munin实现  
+    . VPN默认安装OpenVPN  
 
-2. 这个脚本拥有怎样的特性?
-    . 可支持Debian 10及之后的stable版本
-    . 可快速完成网络设备部署
-    . 不提供任何管理界面
-    . VLAN全部使用linux bridge网络功能实现
-    . DNS/DHCP由dnsmasq实现
-    . 网络监控由munin实现
-    . VPN默认安装OpenVPN
-
-3. 后续计划
-    . 提供一个可重入的设置功能(端口设置, 路由设置, vlan设置)
-    . ipv6支持 & 测试
-    . 无线中继
-    . 有线中继
+2. 后续计划:  
+    . 提供一个可重入的设置功能(端口设置, 路由设置, vlan设置)  
+    . ipv6支持 & 测试  
+    . 无线中继  
+    . 有线中继  
 
 ### Bug & 优化
 
