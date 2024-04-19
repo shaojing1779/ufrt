@@ -307,11 +307,28 @@ network_set() {
     chmod +x ${ETC_DIR}/network/if-up.d/route
 }
 
-# set ip forward
+# kernel opt
 ip_forward_set() {
     # ip_forward
-    echo "net.ipv4.ip_forward = 1" > ${ETC_DIR}/sysctl.conf && sysctl -p
-    echo "net.ipv6.conf.all.forwarding = 1" >> ${ETC_DIR}/sysctl.conf && sysctl -p
+    echo "net.ipv4.ip_forward = 1" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv6.conf.all.forwarding = 1" >> ${ETC_DIR}/sysctl.conf
+
+    # other kernel opt
+    echo "net.ipv4.tcp_syncookies = 1" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_tw_reuse = 1" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_fin_timeout = 30" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_keepalive_time = 1200" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.ip_local_port_range = 10000 65000" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_max_syn_backlog = 8192" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_max_tw_buckets = 5000" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_fastopen = 3" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_mem = 25600 51200 102400" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_rmem = 4096 87380 67108864" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_wmem = 4096 65536 67108864" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_mtu_probing = 1" > ${ETC_DIR}/sysctl.conf
+    echo "net.ipv4.tcp_congestion_control = bbr" > ${ETC_DIR}/sysctl.conf
+
+    sysctl -p
 }
 
 # iptables setting
