@@ -5,7 +5,7 @@ ETC_DIR=/etc
 
 # create deploy directory
 mk_work_dir() {
-    DEP_DIR=/opt/debrt; mkdir -p $DEP_DIR
+    DEP_DIR=/opt/ufrt; mkdir -p $DEP_DIR
 }
 
 check_fmt_cidr() {

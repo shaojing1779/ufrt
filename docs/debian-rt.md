@@ -71,35 +71,6 @@ iptables -L -n -t nat
 iptables-save
 ```
 
-### dnsmasq
-
-```bash
-# /etc/dnsmasq.conf
-listen-address=10.43.0.254,127.0.0.1
-# listen-address=127.0.0.1
-
-dhcp-range=10.43.0.50,10.43.0.150,48h
-resolv-file=/etc/dnsmasq.d/resolv.dnsmasq.conf
-log-facility=/var/log/dnsmasq/dnsmasq.log
-log-async=100
-
-conf-dir=/etc/dnsmasq.d
-
-# /etc/dnsmasq.d/resolv.dnsmasq.conf
-all-servers
-server=202.106.0.20
-server=192.168.31.254
-server=114.114.114.114
-server=8.8.8.8
-server=168.95.1.1
-
-address=/nas.coolbit.work/192.168.31.95
-address=/nas/192.168.31.95
-address=/nuc.coolbit.work/192.168.31.198
-address=/nuc/192.168.31.198
-
-```
-
 ### Privoxy
 
 ```bash
@@ -131,6 +102,10 @@ keep-alive-timeout 5
 tolerate-pipelining 1
 socket-timeout 300
 ```
+
+### dnsmasq
+
+[dnsmasq setup](./dnsmasq.md)
 
 ### munin Nginx 设置
 
