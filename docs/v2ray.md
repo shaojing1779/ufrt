@@ -30,13 +30,17 @@ https://github.com/v2fly/v2ray-core/releases/download/v5.14.1/v2ray-openbsd-arm6
     {
       "port": 1080,
       "listen": "0.0.0.0",
-      "protocol": "socks"
+      "protocol": "socks",
+      "settings": {
+        "udp": true
+      }
     },
     {
       "port": 8118,
       "listen": "0.0.0.0",
       "protocol": "http",
       "settings": {
+        "udp": true,
         "accounts": [
           {
             "user": "user",
