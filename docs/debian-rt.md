@@ -7,7 +7,8 @@
 ### 网络工具
 
 ```bash
-apt install -y dnsmasq ifupdown nfs-common samba net-tools tcpdump bridge-utils iptraf iftop privoxy openssl unzip vim-tiny tree wget curl iptables-persistent munin nginx-full openvpn
+apt install -y dnsmasq ifupdown nfs-common samba net-tools tcpdump bridge-utils iptraf iftop privoxy openssl unzip vim-tiny tree wget curl iptables-persistent munin nginx-full openvpn pppoeconf
+
 ```
 
 ### 网络接口管理
@@ -34,6 +35,12 @@ auto brlan0
 auto enp1s0
         iface enp1s0 inet static
         address 10.43.0.1/24
+```
+
+### WAN pppoe拨号
+
+```bash
+pppoeconf
 ```
 
 ### 开启路由转发
