@@ -132,7 +132,7 @@ Restart=on-failure
 WantedBy=multi-user.target
 ```
 
-## rc.d
+## freebsd rc.d
 
 `/usr/local/etc/rc.d/v2ray`
 
@@ -140,37 +140,57 @@ WantedBy=multi-user.target
 #!/bin/sh
 
 # PROVIDE: v2ray
-# REQUIRE: netif NETWORKING ipmon ipfw netwait
-# BEFORE: LOGIN
-# KEYWORD:
+# REQUIRE: netif NETWORKING ipmon pf netwait
+# KEYWORD: shutdown
 
 . /etc/rc.subr
 
 name="v2ray"
 rcvar=v2ray_enable
 
+config_file="/usr/local/v2ray/config.json"
+command="/usr/local/v2ray/v2ray"
+flags="run ${config_file}"
+command_args="&"
+
 start_precmd="v2ray_checkconfig"
 restart_precmd="v2ray_checkconfig"
 reload_precmd="v2ray_checkconfig"
 configtest_cmd="v2ray_checkconfig"
-command="/usr/local/v2ray/v2ray"
-command_args="&"
-# required_files=/usr/local/etc/${name}_config.json
-required_files=/usr/local/v2ray/config.json
 extra_commands="reload configtest"
-v2ray_user=www
-v2ray_group=www
-
-load_rc_config "v2ray"
-
-v2ray_configfile="/usr/local/v2ray/config.json"
-v2ray_flags="run ${v2ray_configfile}"
+required_files=${config_file}
 
 v2ray_checkconfig()
 {
- # eval ${command} ${v2ray_flags} -test
- eval ${command} ${v2ray_flags}
+  eval ${command} ${v2ray_flags} ${command_args}
 }
 
+load_rc_config $name
 run_rc_command "$1"
+```
+
+## openbsd rc.d
+
+`/etc/rc.d/v2ray`
+
+```ksh
+#!/bin/ksh
+#
+# $OpenBSD: v2ray,v 1.53 2023/08/30 00:00:00 rpe Exp $
+
+daemon="/usr/local/v2ray/v2ray"
+daemon_flags="-confdir /usr/local/v2ray/"
+daemon_user=www
+
+. /etc/rc.d/rc.subr
+
+env="V2RAY_LOCATION_ASSET=/usr/local/v2ray/"
+rc_start() {
+        ${rcexec} "${env} ${daemon} ${daemon_flags}"
+}
+
+rc_bg=YES
+rc_reload=NO
+
+rc_cmd $1
 ```
