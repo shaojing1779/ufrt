@@ -140,7 +140,7 @@ WantedBy=multi-user.target
 #!/bin/sh
 
 # PROVIDE: v2ray
-# REQUIRE: netif NETWORKING ipmon pf netwait
+# REQUIRE: netif NETWORKING pf netwait
 # KEYWORD: shutdown
 
 . /etc/rc.subr
