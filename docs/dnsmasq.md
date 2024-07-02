@@ -35,3 +35,19 @@ address=/www.example.net/10.11.0.254
 ```ini
 dhcp-host=asus-pc,a4:39:b3:43:b0:d1,10.11.0.201,infinite
 ```
+
+## PUBLIC DNS SERVER
+
+```sh
+Google:
+8.8.8.8
+8.8.4.4
+
+Cloudflare:
+1.1.1.1
+1.0.0.1
+
+Microsoft:
+4.2.2.1
+4.2.2.2
+```

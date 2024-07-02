@@ -4,7 +4,7 @@
 
 ```bash
 # install same  commonly used
-pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid
+pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop
 
 # OpenBSD Packet Filter (PF) & ALTQ
 kldload pf.ko
@@ -165,6 +165,8 @@ block drop out quick on $ext_if from any to $nonroute
 pass out on $ext_if all
 
 ```
+
+`pfctl -f /etc/pf.conf`
 
 ### FORWARDING
 
