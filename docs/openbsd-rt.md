@@ -1,16 +1,4 @@
----
-title: 'Make Openbsd as Router'
-date: 2023-08-30T19:05:00+08:00
-keywords:
-- openbsd
-- router
-- gateway
-- unix
-- pf
-description: "Make Openbsd as Router"
-draft: false
-tags: [openbsd, router, gateway, pf]
----
+# OpenBSD as firewall
 
 ## NETWORK INTERFACES
 

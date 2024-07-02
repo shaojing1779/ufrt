@@ -11,7 +11,6 @@ kldload pf.ko
 service pf enable
 service pflog enable
 service pfsync enable
-
 ```
 
 /boot/loader.conf
@@ -39,6 +38,8 @@ ifconfig_vtnet1="inet 10.11.0.254/24"
 #ifconfig_bridge0="inet 10.11.0.254/24"
 
 sshd_enable="YES"
+netwait_enable="YES"
+netwait_if="vtnet0"
 ```
 
 ## PF SETUP
@@ -168,7 +169,7 @@ pass out on $ext_if all
 
 `pfctl -f /etc/pf.conf`
 
-### FORWARDING
+## FORWARDING
 
 /etc/sysctl.conf
 
@@ -177,6 +178,10 @@ net.inet.ip.forwarding=1
 net.inet6.ip6.forwarding=1
 ```
 
-### DNSMASQ
+## DNSMASQ
 
 [dnsmasq setup](./dnsmasq.md)
+
+## REBOOT FREEBSD
+
+shutdown -r +1 "The system will reboot in 1 minutes for maintenance."

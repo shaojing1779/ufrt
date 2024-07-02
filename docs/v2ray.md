@@ -140,7 +140,7 @@ WantedBy=multi-user.target
 #!/bin/sh
 
 # PROVIDE: v2rayd
-# REQUIRE: netif NETWORKING pf netwait
+# REQUIRE: DAEMON NETWORKING pf netwait
 # KEYWORD: shutdown
 
 . /etc/rc.subr

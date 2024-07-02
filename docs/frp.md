@@ -72,7 +72,7 @@ WantedBy=multi-user.target
 #!/bin/sh
 
 # PROVIDE: frpc
-# REQUIRE: netif NETWORKING netwait
+# REQUIRE: DAEMON NETWORKING netwait
 # BEFORE:
 # KEYWORD: shutdown
 
