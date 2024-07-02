@@ -91,3 +91,7 @@ command_args="-c ${frpc_conf} &"
 
 run_rc_command "$1"
 ```
+
+`chmod +x /usr/local/etc/rc.d/frpc`
+`service frpc enable`
+`service frpc start`

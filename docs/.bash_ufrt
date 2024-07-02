@@ -1,0 +1,27 @@
+# proxy setup
+HTTP_PROXY_SRV=usr1:debian@127.0.0.1:8118
+SOCK_PROXY_SRV=127.0.0.1:1080
+
+alias proxyon="export http_proxy=http://${HTTP_PROXY_SRV};
+    export https_proxy=http://${HTTP_PROXY_SRV};
+    export ALL_PROXY=http://${HTTP_PROXY_SRV};
+    export HTTP_PROXY=http://${HTTP_PROXY_SRV};
+    export HTTPS_PROXY=http://${HTTP_PROXY_SRV}"
+alias proxyoff="unset http_proxy;
+    unset https_proxy;
+    unset HTTP_PROXY;
+    unset HTTPS_PROXY;
+    unset ALL_PROXY"
+
+export NO_PROXY=localhost,127.0.0.1,::1
+export no_proxy=localhost,127.0.0.1,::1
+
+# PS
+export PS1="\[\033[01;31m\]\u\[\033[01;33m\]@\[\033[01;31m\]\h \[\033[01;34m\]\W\[\033[00m\]\\$"
+
+# insert .bashrc or .profile or .bash_profile
+# if [ -f ~/.bash_ufrt ]; then
+#     . ~/.bash_ufrt
+# fi
+
+# if [ "$TMUX" = "" ]; then tmux; fi

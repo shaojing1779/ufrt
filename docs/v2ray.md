@@ -29,7 +29,7 @@ https://github.com/v2fly/v2ray-core/releases/download/v5.14.1/v2ray-openbsd-arm6
   "inbounds": [
     {
       "port": 1080,
-      "listen": "0.0.0.0",
+      "listen": "127.0.0.1",
       "protocol": "socks",
       "settings": {
         "udp": true
@@ -134,19 +134,19 @@ WantedBy=multi-user.target
 
 ## freebsd rc.d
 
-`/usr/local/etc/rc.d/v2ray`
+/usr/local/etc/rc.d/v2rayd
 
-```bash
+```sh
 #!/bin/sh
 
-# PROVIDE: v2ray
+# PROVIDE: v2rayd
 # REQUIRE: netif NETWORKING pf netwait
 # KEYWORD: shutdown
 
 . /etc/rc.subr
 
-name="v2ray"
-rcvar=v2ray_enable
+name="v2rayd"
+rcvar=v2rayd_enable
 
 config_file="/usr/local/v2ray/config.json"
 command="/usr/local/v2ray/v2ray"
@@ -169,14 +169,18 @@ load_rc_config $name
 run_rc_command "$1"
 ```
 
+`chmod +x /usr/local/etc/rc.d/v2rayd`
+`service v2rayd enable`
+`service v2rayd start`
+
 ## openbsd rc.d
 
-`/etc/rc.d/v2ray`
+/etc/rc.d/v2rayd
 
-```ksh
+```sh
 #!/bin/ksh
 #
-# $OpenBSD: v2ray,v 1.53 2023/08/30 00:00:00 rpe Exp $
+# $OpenBSD: v2rayd,v 1.53 2023/08/30 00:00:00 rpe Exp $
 
 daemon="/usr/local/v2ray/v2ray"
 daemon_flags="-confdir /usr/local/v2ray/"
