@@ -25,7 +25,8 @@ service pfsync enable
 hostname="freebsd14"
 
 # set wan
-ifconfig_vtnet0="inet 10.21.0.254 netmask 255.255.255.0"
+ifconfig_vtnet0="inet 10.21.0.254/24"
+ifconfig_vtnet0_alias0="inet 192.168.31.1/24"
 defaultrouter=10.21.0.1
 gateway_enable="YES"
 
