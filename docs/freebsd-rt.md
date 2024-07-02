@@ -1,6 +1,6 @@
 # FreeBSD as firewall
 
-## FREEBSD INIT
+## BASIC FREEBSD CONFIGURATION
 
 ```bash
 # install same  commonly used
@@ -170,8 +170,9 @@ pass out on $ext_if all
 
 ### FORWARDING
 
-```base
 /etc/sysctl.conf
+
+```sh
 net.inet.ip.forwarding=1
 net.inet6.ip6.forwarding=1
 ```
