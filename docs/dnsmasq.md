@@ -1,5 +1,17 @@
 # DNSMASQ
 
+## NOTICE
+
+FreeBSD conf file:  
+/usr/local/etc/dnsmasq.conf  
+/usr/local/etc/dnsmasq.d  
+
+Linux conf file:  
+/etc/dnsmasq.conf  
+/etc/dnsmasq.d  
+
+## CONFIGURE
+
 /etc/dnsmasq.conf
 
 ```ini
@@ -10,7 +22,7 @@ resolv-file=/etc/dnsmasq.d/resolv.dnsmasq.conf
 # log-queries
 log-facility=/var/log/dnsmasq/dnsmasq.log
 log-async=100
-conf-dir=/usr/local/etc/dnsmasq.d
+conf-dir=/etc/dnsmasq.d
 ```
 
 /etc/dnsmasq.d/resolv.dnsmasq.conf
