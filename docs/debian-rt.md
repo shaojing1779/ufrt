@@ -105,15 +105,15 @@ server {
 
 ```bash
 # /etc/samba/smb.conf
-[usr1]
+[user]
 comment = Work Dir
-path = /home/usr1
+path = /home/user
 public = yes
 writeable = yes
 browseable = yes
 
 # 添加用户名/密码
-smbpasswd -a usr1
+smbpasswd -a user
 
 # 重启samba
 systemctl restart smbd

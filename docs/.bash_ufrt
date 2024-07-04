@@ -1,5 +1,5 @@
 # proxy setup
-HTTP_PROXY_SRV=usr1:debian@127.0.0.1:8118
+HTTP_PROXY_SRV=user:password@127.0.0.1:8118
 SOCK_PROXY_SRV=127.0.0.1:1080
 
 alias proxyon="export http_proxy=http://${HTTP_PROXY_SRV};
@@ -17,7 +17,7 @@ export NO_PROXY=localhost,127.0.0.1,::1
 export no_proxy=localhost,127.0.0.1,::1
 
 # PS
-export PS1="\[\033[01;31m\]\u\[\033[01;33m\]@\[\033[01;31m\]\h \[\033[01;34m\]\W\[\033[00m\]\\$"
+export PS1='\[\e[31m\]\u@\h:\[\e[94m\]\w\[\e[93m\]\$ \[\e[0m\]'
 
 # insert .bashrc or .profile or .bash_profile
 # if [ -f ~/.bash_ufrt ]; then
