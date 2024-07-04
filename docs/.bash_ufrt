@@ -16,9 +16,12 @@ alias proxyoff="unset http_proxy;
 export NO_PROXY=localhost,127.0.0.1,::1
 export no_proxy=localhost,127.0.0.1,::1
 
-# PS
-export PS1='\[\e[31m\]\u@\h:\[\e[94m\]\w\[\e[93m\]\$ \[\e[0m\]'
+# ls
+alias ls="ls --color"
+alias ll="ls -l"
 
+# PS
+export PS1='\[\e[31m\]\u@\h:\[\e[97m\]\w\[\e[93m\]\$ \[\e[0m\]'
 # insert .bashrc or .profile or .bash_profile
 # if [ -f ~/.bash_ufrt ]; then
 #     . ~/.bash_ufrt
