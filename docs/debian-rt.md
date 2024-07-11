@@ -74,6 +74,8 @@ net.ipv4.tcp_congestion_control = bbr
 ```bash
 # 设置NAT 表规则,ethx0为出WAN网口
 iptables -t nat -A POSTROUTING -o ethx0 -j MASQUERADE
+iptables -A FORWARD -i ethx0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i eth1 -o ethx0 -j ACCEPT
 iptables -L -n -t nat
 iptables-save
 ```
@@ -108,7 +110,7 @@ server {
 [user]
 comment = Work Dir
 path = /home/user
-public = yes
+public = no
 writeable = yes
 browseable = yes
 
@@ -128,7 +130,7 @@ systemctl enable smbd
 [public-dir]
     comment = Work Dir
     path = /public-dir/
-    public = yes
+    public = no
     writeable = yes
     browseable = yes
     guest ok = yes
