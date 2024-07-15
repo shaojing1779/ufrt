@@ -4,7 +4,7 @@
 
 ```bash
 # install same  commonly used
-pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop sysutils/bsdinfo
+pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop sysutils/bsdinfo vnstat
 
 # OpenBSD Packet Filter (PF) & ALTQ
 kldload pf.ko
@@ -41,6 +41,18 @@ sshd_enable="YES"
 netwait_enable="YES"
 netwait_if="vtnet0"
 ```
+
+## ROUTING
+
+/etc/rc.conf
+
+```conf
+# routing
+static_routes="asus"
+route_asus="192.168.33.0/24 192.168.33.1"
+```
+
+`service routing restart`
 
 ## PF SETUP
 
@@ -169,19 +181,58 @@ pass out on $ext_if all
 
 `pfctl -f /etc/pf.conf`
 
-## FORWARDING
+## KERNEL && FORWARDING
 
 /etc/sysctl.conf
 
-```sh
+```conf
+# forwarding
 net.inet.ip.forwarding=1
 net.inet6.ip6.forwarding=1
+
+# set autotuning maximum to at least 16MB too
+net.inet.tcp.sendbuf_max=16777216
+net.inet.tcp.recvbuf_max=16777216
+net.inet.tcp.sendbuf_auto=1
+net.inet.tcp.recvbuf_auto=1
+
+kern.ipc.maxsockbuf=16777216
+net.inet.tcp.sendbuf_inc=16384
+
+# socket max connect
+kern.ipc.somaxconn=4096
+
+# delay
+dev.em.0.rx_int_delay=66
+dev.em.0.tx_int_delay=66
+
+# ack delayed
+net.inet.tcp.delayed_ack=1
+```
+
+/boot/loader.conf
+
+```conf
+net.isr.maxthreads=4
+net.isr.bindthreads=0
+net.inet.tcp.syncache.hashsize="2048"
+net.inet.tcp.syncache.bucketlimit="128"
+```
+
+## VNSTAT
+
+```sh
+mkdir -p /var/db/vnstat/
+chown -R vnstat:vnstat /var/db/vnstat
+service vnstat enable
+service vnstat start
 ```
 
 ## TEMPERATURE
 
 ```sh
 kldload coretemp
+echo 'coretemp_load="YES"' > /boot/loader.conf
 echo 'sysctl -a | grep temperature' > /usr/local/bin/sensors
 chmod +x /usr/local/bin/sensors
 ```
