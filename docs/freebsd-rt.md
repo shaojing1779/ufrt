@@ -4,7 +4,7 @@
 
 ```bash
 # install same  commonly used
-pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop
+pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop sysutils/bsdinfo
 
 # OpenBSD Packet Filter (PF) & ALTQ
 kldload pf.ko
@@ -176,6 +176,14 @@ pass out on $ext_if all
 ```sh
 net.inet.ip.forwarding=1
 net.inet6.ip6.forwarding=1
+```
+
+## TEMPERATURE
+
+```sh
+kldload coretemp
+echo 'sysctl -a | grep temperature' > /usr/local/bin/sensors
+chmod +x /usr/local/bin/sensors
 ```
 
 ## DNSMASQ
