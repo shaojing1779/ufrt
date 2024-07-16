@@ -4,7 +4,7 @@
 
 ```bash
 # install same  commonly used
-pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop sysutils/bsdinfo vnstat
+pkg install vim bash sudo htop tree xauth wget curl nmap git cpuid pftop bind-tools sysutils/bsdinfo vnstat
 
 # OpenBSD Packet Filter (PF) & ALTQ
 kldload pf.ko
