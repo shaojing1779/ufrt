@@ -335,10 +335,17 @@ ip_forward_set() {
 iptables_set() {
     # get WAN iface info
     IFS="|" read -r ifwan gw dns1 <<< ${M_INET["_gw"]}
+    IFS="|" read -r addr mask mask_num network iflan itype <<< ${M_INET["vlan1"]}
 
     # LAN interface
     iptables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
+    iptables -A FORWARD -i ${ifwan} -o ${iflan} -m state --state RELATED,ESTABLISHED -j ACCEPT
+    iptables -A FORWARD -i ${iflan} -o ${ifwan} -j ACCEPT
+
     ip6tables -t nat -A POSTROUTING -o ${ifwan} -j MASQUERADE
+    ip6tables -A FORWARD -i ${ifwan} -o ${iflan} -m state --state RELATED,ESTABLISHED -j ACCEPT
+    ip6tables -A FORWARD -i ${iflan} -o ${ifwan} -j ACCEPT
+
     iptables-save > /etc/iptables/rules.v4
     ip6tables-save > /etc/iptables/rules.v6
 }
