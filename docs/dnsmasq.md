@@ -48,11 +48,21 @@ address=/www.example.net/10.11.0.254
 dhcp-host=asus-pc,a4:39:b3:43:b0:d1,10.11.0.201,infinite
 ```
 
+## adblock-for-dnsmasq
+
 [/etc/dnsmasq.d/adblock-for-dnsmasq.conf](https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/adblock-for-dnsmasq.conf)
 [github.com/privacy-protection-tools/anti-AD.git](https://github.com/privacy-protection-tools/anti-AD.git)
 
 ```sh
 wget https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/adblock-for-dnsmasq.conf -O /etc/dnsmasq.d/adblock-for-dnsmasq.conf
+```
+
+## GFWList
+
+```bash
+wget https://raw.githubusercontent.com/cokebar/gfwlist2dnsmasq/master/gfwlist2dnsmasq.sh
+chmod +x gfwlist2dnsmasq.sh
+sudo sh -c './gfwlist2dnsmasq.sh -o /etc/dnsmasq.d/dnsmasq_gfwlist.conf'
 ```
 
 ## PUBLIC DNS SERVER
