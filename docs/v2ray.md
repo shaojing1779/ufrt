@@ -26,6 +26,11 @@ https://github.com/v2fly/v2ray-core/releases/download/v5.14.1/v2ray-openbsd-arm6
 
 ```json
 {
+  "log": {
+    "loglevel": "error",
+    "access": "/var/log/v2ray/access.log",
+    "error": "/var/log/v2ray/error.log"
+  },
   "inbounds": [
     {
       "port": 1080,
@@ -93,8 +98,22 @@ https://github.com/v2fly/v2ray-core/releases/download/v5.14.1/v2ray-openbsd-arm6
     }
   ],
   "routing": {
-    "domainStrategy": "706f4b83b9c6d.example.net",
+    "domainStrategy": "IPIfNonMatch",
     "rules": [
+      {
+        "type": "field",
+        "domain": [
+          "geosite:cn"
+        ],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "ip": [
+          "geoip:cn"
+        ],
+        "outboundTag": "direct"
+      },
       {
         "type": "field",
         "ip": [
