@@ -251,7 +251,7 @@ install_pkg() {
     apt install -y unzip vim-tiny tree wget curl
     apt install -y munin nginx-full openvpn easy-rsa
     # iptables save
-    apt install -y iptables-persistent
+    apt install -y iptables-persistent ulogd2
 }
 
 # network setting
@@ -402,6 +402,7 @@ start_server() {
     systemctl enable --now dnsmasq
     systemctl enable --now munin
     systemctl enable --now nginx
+    systemctl enable --now netfilter-persistent.service
 }
 
 # stop systemd server

@@ -7,7 +7,7 @@
 ### 网络工具
 
 ```bash
-apt install -y dnsmasq ifupdown nfs-common samba net-tools tcpdump bridge-utils iptraf iftop openssl unzip vim-tiny tree wget curl iptables-persistent munin nginx-full openvpn pppoeconf
+apt install -y dnsmasq ifupdown nfs-common samba net-tools tcpdump bridge-utils iptraf iftop openssl unzip vim-tiny tree wget curl iptables-persistent munin nginx-full openvpn pppoeconf ulogd2
 
 ```
 
@@ -78,6 +78,8 @@ iptables -A FORWARD -i ethx0 -o eth1 -m state --state RELATED,ESTABLISHED -j ACC
 iptables -A FORWARD -i eth1 -o ethx0 -j ACCEPT
 iptables -L -n -t nat
 iptables-save
+
+systemctl enable --now netfilter-persistent.service
 ```
 
 ### dnsmasq
