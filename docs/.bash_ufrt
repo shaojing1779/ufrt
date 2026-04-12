@@ -25,6 +25,10 @@ export HISTTIMEFORMAT='%F %T '
 export HISTSIZE=3000
 export HISTFILESIZE=3000
 
+# cat
+alias bat="bat --style=numbers "
+alias cat="bat --style=numbers "
+
 # PS
 export PS1='\[\e[31m\]\u@\h:\[\e[97m\]\w\[\e[93m\]\$ \[\e[0m\]'
 # insert .bashrc or .profile or .bash_profile
